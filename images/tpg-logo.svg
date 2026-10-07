@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 76" role="img" aria-label="TPG Telecom">
+  <!-- White background with border -->
+  <rect width="230" height="76" rx="6" ry="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+
+  <!-- "tpg" wordmark -->
+  <text x="10" y="57" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="54" fill="#0d1f3c">tpg</text>
+
+  <!-- Dot grid: 2 rows × 3 columns -->
+  <!-- Row 1: red, orange, yellow -->
+  <circle cx="140" cy="22" r="8" fill="#e8231a"/>
+  <circle cx="161" cy="22" r="8" fill="#f47920"/>
+  <circle cx="182" cy="22" r="8" fill="#f9c21c"/>
+  <!-- Row 2: green, charcoal, light grey -->
+  <circle cx="140" cy="43" r="8" fill="#5db642"/>
+  <circle cx="161" cy="43" r="8" fill="#4a4647"/>
+  <circle cx="182" cy="43" r="8" fill="#b2b4b2"/>
+
+  <!-- "TELECOM" label below dots -->
+  <text x="137" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="13" fill="#0d1f3c" letter-spacing="1.2">TELECOM</text>
+</svg>

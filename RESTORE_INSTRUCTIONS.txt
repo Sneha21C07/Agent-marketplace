@@ -1,0 +1,52 @@
+============================================================
+NEXUSAGENT ENTERPRISE MARKETPLACE - FULL APP BACKUP
+============================================================
+
+WHAT'S IN THIS ZIP
+------------------------------------------------------------
+- index.html              Main app entry point
+- css/                    Stylesheets
+- js/                     App source (.js files saved as .js.txt - see below)
+- serve_marketplace.py    Local Python server + SQLite REST API
+- seed_data.json          Source data used to (re)seed the database
+- nexus_marketplace.db    Live SQLite database (your current data)
+
+WHY ARE .js FILES NAMED .js.txt?
+------------------------------------------------------------
+Gmail blocks all attachments (including zip contents) containing raw .js
+files. To allow this backup to be emailed, JavaScript files are renamed
+to end in '.js.txt'. You must rename them back before running the app.
+
+HOW TO RECOVER / RUN (Windows)
+------------------------------------------------------------
+1. Unzip this file anywhere on your computer
+   (right-click the .zip -> "Extract All...").
+2. In the extracted folder, open PowerShell
+   (Shift + Right-click in the folder -> "Open PowerShell window here").
+3. Run this command to restore the real .js filenames:
+   Get-ChildItem -Recurse -Filter '*.js.txt' | Rename-Item -NewName { $_.Name -replace '\.js\.txt$','.js' }
+4. Start the local server (requires Python 3.9+):
+   python serve_marketplace.py
+5. Open this URL in your browser:
+   http://localhost:8000/index.html
+
+HOW TO RECOVER / RUN (Mac / Linux)
+------------------------------------------------------------
+1. Unzip the file, then open Terminal in that folder.
+2. Restore .js filenames:
+   find . -name '*.js.txt' -exec bash -c 'mv "$1" "${1%.txt}"' _ {} \;
+3. Start the server:
+   python3 serve_marketplace.py
+4. Open http://localhost:8000/index.html in your browser.
+
+NOTES
+------------------------------------------------------------
+- This app stores ALL data (agents, prompts, audit logs, current role)
+  exclusively in the SQLite file nexus_marketplace.db. There is no
+  browser-storage fallback - the Python server must be running.
+- nexus_marketplace.db in this zip already contains your data at the time
+  of backup. If you ever delete it, restarting the server automatically
+  recreates and re-seeds it from seed_data.json.
+- To reset to default sample data at any time, delete nexus_marketplace.db
+  and restart the server.
+============================================================

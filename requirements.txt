@@ -1,0 +1,53 @@
+# ============================================================
+# NexusAgent Enterprise Marketplace — Server Requirements
+# ============================================================
+#
+# PYTHON VERSION
+# --------------
+# Requires Python 3.9 or higher (tested on 3.11.4).
+# Install Python from https://www.python.org/downloads/
+#
+# PYTHON DEPENDENCIES
+# -------------------
+# This application uses ONLY Python standard-library modules:
+#   • json          — API payload serialisation
+#   • sqlite3       — embedded database (built into Python)
+#   • http.server   — ThreadingHTTPServer + SimpleHTTPRequestHandler
+#   • pathlib       — cross-platform file paths
+#   • urllib.parse  — URL routing in the request handler
+#
+# No pip packages are required. The list below is intentionally
+# empty so `pip install -r requirements.txt` succeeds cleanly
+# on any Python 3.9+ environment.
+#
+# FRONT-END CDN DEPENDENCIES (loaded at runtime by the browser)
+# --------------------------------------------------------------
+# The following libraries are fetched from public CDNs by index.html.
+# The server machine does NOT need these installed — only the browser
+# client needs internet access on first load (or they must be proxied).
+#
+#   • TailwindCSS  v3   — https://cdn.tailwindcss.com
+#   • Lucide Icons      — https://unpkg.com/lucide@latest
+#   • JSZip        3.10 — https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js
+#   • Google Fonts      — Inter (300–800) + JetBrains Mono (400–700)
+#                         https://fonts.googleapis.com
+#
+# HOW TO RUN ON A NEW SERVER
+# --------------------------
+# Windows:
+#   python serve_marketplace.py
+#
+# macOS / Linux:
+#   python3 serve_marketplace.py
+#
+# Then open:  http://localhost:8000/index.html
+#
+# The server binds to 0.0.0.0:8000 by default.
+# To change the port, edit the PORT constant in serve_marketplace.py.
+#
+# DATABASE
+# --------
+# SQLite database file: nexus_marketplace.db (auto-created on first run).
+# If absent, the server seeds it automatically from seed_data.json.
+# To reset to defaults, delete nexus_marketplace.db and restart the server.
+# ============================================================

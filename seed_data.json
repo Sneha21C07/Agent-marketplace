@@ -1,0 +1,776 @@
+{
+  "agents": [
+    {
+      "id": "agent-sre-k8s",
+      "name": "GitHub Copilot SRE & Kubernetes Triager",
+      "slug": "copilot-sre-k8s",
+      "tagline": "Autonomous root-cause analysis, CrashLoopBackOff remediation & Prometheus alert triaging for VS Code Copilot.",
+      "category": "DevOps & SRE",
+      "icon": "server",
+      "color": "#8957e5",
+      "author": {
+        "name": "Elena Rostova",
+        "role": "Principal SRE AI Engineer",
+        "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+        "team": "Cloud Platform Engineering"
+      },
+      "version": "2.4.0",
+      "copilotModel": "Claude 3.5 Sonnet (GitHub Copilot)",
+      "copilotChatHandle": "@sre-triager",
+      "rating": 4.95,
+      "downloads": 1420,
+      "activeDeployments": 340,
+      "certificationStatus": "CERTIFIED",
+      "lastUpdated": "2026-08-14T10:30:00Z",
+      "tags": [
+        "Kubernetes",
+        "Helm",
+        "Prometheus",
+        "SRE",
+        "Incident Response",
+        "VS Code Copilot"
+      ],
+      "description": "The Kubernetes & Cloud SRE Triager empowers developers and SREs using VS Code GitHub Copilot to diagnose production incidents, inspect cluster crash logs, optimize resource limits, and auto-generate pull requests for Helm chart and YAML manifest patches in seconds.",
+      "copilotConfig": {
+        "instructionsSnippet": "# GitHub Copilot SRE & Kubernetes Triager Instructions\nYou are an expert Enterprise Site Reliability Engineer and Kubernetes Architect.\nWhen analyzing infrastructure incidents:\n1. Parse Kubernetes pod logs, events, and Prometheus metrics provided by the user.\n2. Identify root causes (OOMKilled, CrashLoopBackOff, ImagePullBackOff, Ingress 502).\n3. Generate minimal, production-safe YAML patch diffs with precise resource limits.\n4. Provide an executive summary and blameless incident post-mortem markdown document.",
+        "promptFilePath": ".github/prompts/sre-triager.prompt.md",
+        "vscodeSettingsJson": "{\n  \"github.copilot.chat.agent.sreTriager\": {\n    \"enabled\": true,\n    \"model\": \"claude-3.5-sonnet\",\n    \"contextRule\": \".github/copilot-instructions.md\",\n    \"knowledgeBaseSync\": true\n  }\n}"
+      },
+      "artifacts": {
+        "demoVideo": {
+          "title": "VS Code Copilot Triaging an OOMKilled EKS Pod",
+          "duration": "1m 45s",
+          "resolution": "1080p 60fps",
+          "simulatedTimeline": [
+            {
+              "time": "0:00",
+              "title": "Developer opens VS Code & Copilot Chat",
+              "detail": "Developer types: \"@sre-triager diagnose pod-checkout-service-89f4b in cluster-prod-us-east\""
+            },
+            {
+              "time": "0:22",
+              "title": "Agent queries Pod Event logs & Prometheus OOM metrics",
+              "detail": "Identifies JVM heap exceeding 512Mi limit during flash-sale traffic spike"
+            },
+            {
+              "time": "0:48",
+              "title": "Agent generates Kubernetes Deployment YAML Diff",
+              "detail": "Updates memory request/limit to 1Gi/2Gi and adds horizontal pod autoscaler (HPA)"
+            },
+            {
+              "time": "1:15",
+              "title": "Agent outputs Post-Mortem Markdown Report",
+              "detail": "Generates complete enterprise post-mortem ready for Jira & Confluence"
+            },
+            {
+              "time": "1:45",
+              "title": "1-Click Fix Committed to Git Branch",
+              "detail": "Developer clicks \"Apply in Editor\" and creates PR"
+            }
+          ]
+        },
+        "inputDocuments": [
+          {
+            "id": "doc-in-1",
+            "title": "Kubernetes Pod Crash Logs (OOMKilled)",
+            "filename": "pod-checkout-service.log",
+            "fileType": "LOG",
+            "size": "14.2 KB",
+            "description": "Production container stderr output showing OutOfMemory exception and JVM termination.",
+            "content": "2026-08-14T08:12:01.452Z [WARN] JVM memory utilization reached 96.4% of cgroup limit (512Mi)\n2026-08-14T08:12:03.119Z [ERROR] java.lang.OutOfMemoryError: Java heap space\n  at com.enterprise.checkout.OrderProcessor.processBulkQueue(OrderProcessor.java:184)\n2026-08-14T08:12:04.002Z [FATAL] Terminating process due to uncaught OutOfMemoryError\nState: Terminated\nReason: OOMKilled (Exit Code 137)"
+          },
+          {
+            "id": "doc-in-2",
+            "title": "Prometheus Alert Manager Payload",
+            "filename": "alert-oom-checkout.json",
+            "fileType": "JSON",
+            "size": "3.1 KB",
+            "description": "Webhook alert payload triggered by Prometheus container memory saturation rule.",
+            "content": "{\n  \"receiver\": \"sre-copilot-webhook\",\n  \"status\": \"firing\",\n  \"alerts\": [{\n    \"status\": \"firing\",\n    \"labels\": {\n      \"alertname\": \"KubeContainerMemorySaturationHigh\",\n      \"cluster\": \"prod-us-east-1\",\n      \"namespace\": \"ecommerce-core\",\n      \"pod\": \"checkout-service-789cf-x2l9\",\n      \"severity\": \"critical\"\n    },\n    \"annotations\": {\n      \"summary\": \"Container memory usage > 95% for 3 minutes\"\n    }\n  }]\n}"
+          }
+        ],
+        "outputDocuments": [
+          {
+            "id": "doc-out-1",
+            "title": "Patched Kubernetes Deployment Manifest (YAML Diff)",
+            "filename": "deployment-patch.yaml",
+            "fileType": "YAML",
+            "size": "4.8 KB",
+            "description": "Auto-tuned memory limits, JVM container support options, and HPA configuration.",
+            "content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: checkout-service\n  namespace: ecommerce-core\nspec:\n  replicas: 5 # Scaled from 2\n  template:\n    spec:\n      containers:\n      - name: checkout-app\n        image: enterprise-registry.internal/checkout:v2.4.1\n        resources:\n          requests:\n            cpu: \"500m\"\n            memory: \"1024Mi\" # Increased from 256Mi\n          limits:\n            cpu: \"1500m\"\n            memory: \"2048Mi\" # Increased from 512Mi\n        env:\n        - name: JAVA_TOOL_OPTIONS\n          value: \"-XX:MaxRAMPercentage=80.0 -XX:+UseG1GC\""
+          },
+          {
+            "id": "doc-out-2",
+            "title": "Incident Post-Mortem & Remediation Summary",
+            "filename": "POST-MORTEM-INC-9482.md",
+            "fileType": "MARKDOWN",
+            "size": "6.5 KB",
+            "description": "Automated executive incident post-mortem generated by Copilot for engineering leadership.",
+            "content": "# Post-Mortem: INC-9482 (Checkout Service Pod Crash)\n**Date:** August 14, 2026  \n**Lead Investigator:** GitHub Copilot SRE Agent  \n**Root Cause:** Container OOMKilled due to unscaled JVM heap during flash-sale checkout spikes.  \n**Impact:** 1.2% checkout latency increase for 4 minutes; 0 dropped orders due to retry queue.  \n**Action Items:**\n1. [DONE] Deployed patched Deployment with 2048Mi memory limit and G1GC parameters.\n2. [DONE] Configured Kubernetes Horizontal Pod Autoscaler (HPA) targeting 70% CPU / 75% RAM."
+          }
+        ],
+        "knowledgeBase": [
+          {
+            "id": "kb-1",
+            "title": "Enterprise Kubernetes Production Runbook v3.2",
+            "category": "Infrastructure",
+            "author": "Platform Architecture Team",
+            "lastUpdated": "2026-08-01",
+            "tokenCount": 4200,
+            "description": "Official corporate standard for Kubernetes resource limits, QoS classes, and cluster topologies.",
+            "content": "# Enterprise Kubernetes Production Standards\n## Memory & CPU Allocation Guidelines\n- All production pods MUST declare explicit memory requests and limits.\n- Overcommit ratio for RAM must NOT exceed 1.5x in production clusters.\n- JVM applications must configure `-XX:MaxRAMPercentage` to prevent container kernel killing.\n## Ingress & DNS Timeout Limits\n- Default gateway timeout is 30s. Long-running workloads must use asynchronous queues."
+          },
+          {
+            "id": "kb-2",
+            "title": "Prometheus & AlertManager Incident Triage Matrix",
+            "category": "Observability",
+            "author": "SRE Core Guild",
+            "lastUpdated": "2026-07-28",
+            "tokenCount": 2800,
+            "description": "Standard operating procedures for Sev-1 through Sev-4 alerts.",
+            "content": "# Severity Classification & Action Steps\n- **SEV-1 (Critical)**: Production data loss or full service disruption. Page on-call immediately.\n- **SEV-2 (High)**: Pod restarts > 5 in 10m or memory saturation > 90%. Copilot auto-remediates via PR."
+          }
+        ]
+      },
+      "architectureDiagram": {
+        "title": "Kubernetes SRE & Incident Response Architecture",
+        "caption": "System architecture showing pod crash detection, log analysis, and automated remediation workflow",
+        "dataUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 600'%3E%3Crect width='1000' height='600' fill='%23111827'/%3E%3Ctext x='50' y='50' font-size='24' fill='%23fff' font-weight='bold'%3EKubernetes SRE Incident Response Flow%3C/text%3E%3Crect x='50' y='100' width='150' height='80' fill='%238957e5' stroke='%23a78bfa' stroke-width='2' rx='8'/%3E%3Ctext x='127' y='150' font-size='14' fill='%23fff' text-anchor='middle' font-weight='bold'%3EPod Crash%3C/text%3E%3Crect x='300' y='100' width='150' height='80' fill='%2310b981' stroke='%2334d399' stroke-width='2' rx='8'/%3E%3Ctext x='375' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3ELog Parser%3C/text%3E%3Ctext x='375' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3E%26 Analysis%3C/text%3E%3Crect x='550' y='100' width='150' height='80' fill='%2306b6d4' stroke='%2322d3ee' stroke-width='2' rx='8'/%3E%3Ctext x='625' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3EMetrics%3C/text%3E%3Ctext x='625' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3E%26 Prometheus%3C/text%3E%3Crect x='800' y='100' width='150' height='80' fill='%23f59e0b' stroke='%23fbbf24' stroke-width='2' rx='8'/%3E%3Ctext x='875' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3EYAML Patch%3C/text%3E%3Ctext x='875' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3EGenerator%3C/text%3E%3Cline x1='200' y1='140' x2='300' y2='140' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='450' y1='140' x2='550' y2='140' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='700' y1='140' x2='800' y2='140' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Crect x='50' y='300' width='900' height='250' fill='%231f2937' stroke='%234b5563' stroke-width='2' rx='8'/%3E%3Ctext x='500' y='330' font-size='16' fill='%23fff' text-anchor='middle' font-weight='bold'%3ECopilot Agent Analysis Engine%3C/text%3E%3Crect x='70' y='350' width='260' height='180' fill='%23111827' stroke='%238957e5' stroke-width='1' rx='4'/%3E%3Ctext x='200' y='375' font-size='12' fill='%238957e5' text-anchor='middle' font-weight='bold'%3E1. Incident Triage%3C/text%3E%3Ctext x='200' y='400' font-size='10' fill='%23d1d5db' text-anchor='middle'%3e• Parse error codes%3C/text%3E%3Ctext x='200' y='420' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Map to KB articles%3C/text%3E%3Ctext x='200' y='440' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Classify severity%3C/text%3E%3Crect x='370' y='350' width='260' height='180' fill='%23111827' stroke='%2310b981' stroke-width='1' rx='4'/%3E%3Ctext x='500' y='375' font-size='12' fill='%2310b981' text-anchor='middle' font-weight='bold'%3E2. Solution Gen%3C/text%3E%3Ctext x='500' y='400' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Root cause ID%3C/text%3E%3Ctext x='500' y='420' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• YAML diff build%3C/text%3E%3Ctext x='500' y='440' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Validation check%3C/text%3E%3Crect x='670' y='350' width='260' height='180' fill='%23111827' stroke='%2306b6d4' stroke-width='1' rx='4'/%3E%3Ctext x='800' y='375' font-size='12' fill='%2306b6d4' text-anchor='middle' font-weight='bold'%3E3. Post-Mortem%3C/text%3E%3Ctext x='800' y='400' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Generate report%3C/text%3E%3Ctext x='800' y='420' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Timeline build%3C/text%3E%3Ctext x='800' y='440' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Archive findings%3C/text%3E%3Cdefs%3E%3CmarkerEnd id='arrowhead' markerWidth='10' markerHeight='10' refX='9' refY='3' orient='auto'%3E%3Cpolygon points='0 0, 10 3, 0 6' fill='%23fff'/%3E%3C/marker%3E%3C/defs%3E%3C/svg%3E",
+        "attachment": null
+      },
+      "versions": [
+        {
+          "version": "2.4.0",
+          "releaseDate": "2026-08-14",
+          "status": "CURRENT_STABLE",
+          "author": "Elena Rostova",
+          "changelog": "Added Prometheus v2.5 webhook parser, enhanced JVM memory autotuning, updated VS Code Copilot Chat command.",
+          "instructionsDiff": "+ Enhanced JVM cgroup v2 detection logic\n+ Added auto-generation of HorizontalPodAutoscaler YAML"
+        },
+        {
+          "version": "2.3.1",
+          "releaseDate": "2026-07-10",
+          "status": "PREVIOUS",
+          "author": "Elena Rostova",
+          "changelog": "Fixed Helm template indentation parsing in VS Code Copilot Chat.",
+          "instructionsDiff": "~ Patched YAML linter parser"
+        },
+        {
+          "version": "2.0.0",
+          "releaseDate": "2026-05-15",
+          "status": "ARCHIVED",
+          "author": "Marcus Vance",
+          "changelog": "Initial enterprise release with Kubernetes pod triage and post-mortem generation.",
+          "instructionsDiff": "+ Initial baseline release"
+        }
+      ],
+      "security": {
+        "scanStatus": "PASSED",
+        "vulnerabilitiesDetected": 0,
+        "promptInjectionScore": "99.8% Resistant",
+        "piiMasking": "ENABLED (Strict)",
+        "lastAudited": "2026-08-14"
+      },
+      "metrics": {
+        "monthlyExecutions": 8420,
+        "avgResponseTime": "1.2s",
+        "developerSatisfaction": 98,
+        "hoursSavedPerMonth": 410
+      }
+    },
+    {
+      "id": "agent-secops-cve",
+      "name": "Copilot SecOps Zero-Day & SAST Remediator",
+      "slug": "copilot-secops-remediator",
+      "tagline": "Instant CVE patching, SQLi/XSS prevention & GitHub Advanced Security remediation in VS Code.",
+      "category": "Security & Compliance",
+      "icon": "shield-alert",
+      "color": "#00d4ff",
+      "author": {
+        "name": "David Chen, CISSP",
+        "role": "Head of Application Security",
+        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+        "team": "Enterprise Cyber Defense"
+      },
+      "version": "1.8.2",
+      "copilotModel": "GPT-4o (GitHub Copilot)",
+      "copilotChatHandle": "@secops-patcher",
+      "rating": 4.98,
+      "downloads": 2150,
+      "activeDeployments": 580,
+      "certificationStatus": "CERTIFIED",
+      "lastUpdated": "2026-08-13T14:15:00Z",
+      "tags": [
+        "Security",
+        "SAST",
+        "CVE",
+        "OWASP Top 10",
+        "CodeQL",
+        "SARIF",
+        "Copilot"
+      ],
+      "description": "Automates security fixes inside VS Code GitHub Copilot by parsing SARIF/CodeQL reports, identifying insecure coding patterns, and generating secure drop-in code replacements compliant with enterprise security policies.",
+      "copilotConfig": {
+        "instructionsSnippet": "# GitHub Copilot SecOps Remediator Instructions\nYou are an Enterprise Application Security Principal.\nWhen inspecting code or SARIF security scan reports:\n1. Identify high/critical severity security flaws (SQL injection, Prototype pollution, Insecure Deserialization, SSRF).\n2. Rewrite vulnerable code using parameterized queries, strict input sanitization, and least-privilege tokens.\n3. Validate cryptographic algorithms against NIST/FIPS 140-3 standards.\n4. Output a verified pull request code diff and a security verification test.",
+        "promptFilePath": ".github/prompts/secops-patcher.prompt.md",
+        "vscodeSettingsJson": "{\n  \"github.copilot.chat.agent.secopsPatcher\": {\n    \"enabled\": true,\n    \"model\": \"gpt-4o\",\n    \"securityScanIntegration\": \"sarif-codeql\",\n    \"enforceStrictSanitization\": true\n  }\n}"
+      },
+      "artifacts": {
+        "demoVideo": {
+          "title": "VS Code Copilot Remediating a Blind SQL Injection & SARIF Alert",
+          "duration": "2m 10s",
+          "resolution": "1080p 60fps",
+          "simulatedTimeline": [
+            {
+              "time": "0:00",
+              "title": "Developer triggers CodeQL SARIF scan",
+              "detail": "CodeQL flags line 84 in authController.ts for CWE-89 (SQL Injection)"
+            },
+            {
+              "time": "0:25",
+              "title": "Developer opens Copilot Chat: @secops-patcher fix",
+              "detail": "Agent analyzes AST and database driver configuration"
+            },
+            {
+              "time": "0:50",
+              "title": "Agent constructs Parameterized Query with Zod Validation",
+              "detail": "Replaces raw string concatenation with typed query parameters"
+            },
+            {
+              "time": "1:30",
+              "title": "Agent writes Automated Regression Test",
+              "detail": "Adds unit test verifying SQL injection payload immunity"
+            },
+            {
+              "time": "2:10",
+              "title": "SARIF alert cleared in GitHub Security tab",
+              "detail": "0 vulnerabilities remaining; PR approved for merge"
+            }
+          ]
+        },
+        "inputDocuments": [
+          {
+            "id": "doc-sec-in-1",
+            "title": "CodeQL SARIF Scan Report (SQL Injection Flaw)",
+            "filename": "codeql-sast-results.sarif",
+            "fileType": "SARIF / JSON",
+            "size": "8.4 KB",
+            "description": "GitHub Advanced Security SARIF report detailing tainted user input flowing into query execution.",
+            "content": "{\n  \"$schema\": \"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json\",\n  \"version\": \"2.1.0\",\n  \"runs\": [{\n    \"tool\": { \"driver\": { \"name\": \"CodeQL\", \"version\": \"2.18.0\" } },\n    \"results\": [{\n      \"ruleId\": \"js/sql-injection\",\n      \"level\": \"error\",\n      \"message\": { \"text\": \"Database query built from user-controlled source without sanitization.\" },\n      \"locations\": [{\n        \"physicalLocation\": {\n          \"artifactLocation\": { \"uri\": \"src/controllers/userController.ts\" },\n          \"region\": { \"startLine\": 84, \"startColumn\": 12 }\n        }\n      }]\n    }]\n  }]\n}"
+          }
+        ],
+        "outputDocuments": [
+          {
+            "id": "doc-sec-out-1",
+            "title": "Hardened Parameterized Controller Code (TypeScript Diff)",
+            "filename": "userController-hardened.ts",
+            "fileType": "TYPESCRIPT",
+            "size": "5.2 KB",
+            "description": "Fully parameterized query implementation with input validation and rate-limiting.",
+            "content": "// REPLACED: Unsafe raw string concatenation\n- const query = `SELECT * FROM users WHERE email = '${req.body.email}' AND tenant_id = '${req.tenantId}'`;\n- const user = await db.raw(query);\n\n// SECURE: Parameterized query with Zod input schema validation\n+ const emailSchema = z.string().email().max(255);\n+ const validatedEmail = emailSchema.parse(req.body.email);\n+ const user = await db('users')\n+   .where({ email: validatedEmail, tenant_id: req.tenantId })\n+   .first();"
+          }
+        ],
+        "knowledgeBase": [
+          {
+            "id": "kb-sec-1",
+            "title": "OWASP Enterprise Hardening & Cryptographic Standard 2026",
+            "category": "Security Policy",
+            "author": "Information Security Council",
+            "lastUpdated": "2026-08-05",
+            "tokenCount": 5100,
+            "description": "Corporate mandatory rules for authentication, cryptography, and input validation.",
+            "content": "# Enterprise Application Security Mandates\n1. Raw SQL interpolation is prohibited. All data layer interactions must use approved ORM builders or parameterized binding.\n2. All external request payloads MUST be validated using Zod / JSON Schema.\n3. Passwords must be hashed using Argon2id or bcrypt (cost factor >= 12). MD5/SHA1 are strictly banned."
+          }
+        ]
+      },
+      "architectureDiagram": {
+        "title": "Security Scanning & Remediation Pipeline",
+        "caption": "CodeQL SARIF analysis workflow integrated with Copilot for automated vulnerability fixes",
+        "dataUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 600'%3E%3Crect width='1000' height='600' fill='%23111827'/%3E%3Ctext x='500' y='50' font-size='24' fill='%23fff' font-weight='bold' text-anchor='middle'%3ECodeQL Security Scanning %26 Remediation%3C/text%3E%3Crect x='50' y='100' width='150' height='80' fill='%23f59e0b' stroke='%23fbbf24' stroke-width='2' rx='8'/%3E%3Ctext x='125' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3ESource Code%3C/text%3E%3Ctext x='125' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3ERepository%3C/text%3E%3Crect x='300' y='100' width='150' height='80' fill='%2310b981' stroke='%2334d399' stroke-width='2' rx='8'/%3E%3Ctext x='375' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3ECodeQL%3C/text%3E%3Ctext x='375' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3ESARIF Scanner%3C/text%3E%3Crect x='550' y='100' width='150' height='80' fill='%238957e5' stroke='%23a78bfa' stroke-width='2' rx='8'/%3E%3Ctext x='625' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3ECopilot%3C/text%3E%3Ctext x='625' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3EAgent Analysis%3C/text%3E%3Crect x='800' y='100' width='150' height='80' fill='%2306b6d4' stroke='%2322d3ee' stroke-width='2' rx='8'/%3E%3Ctext x='875' y='145' font-size='13' fill='%23fff' text-anchor='middle'%3EPull Request%3C/text%3E%3Ctext x='875' y='165' font-size='11' fill='%23d1d5db' text-anchor='middle'%3EGenerated Fix%3C/text%3E%3Cline x1='200' y1='140' x2='300' y2='140' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='450' y1='140' x2='550' y2='140' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='700' y1='140' x2='800' y2='140' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Crect x='50' y='250' width='900' height='300' fill='%231f2937' stroke='%234b5563' stroke-width='2' rx='8'/%3E%3Ctext x='500' y='280' font-size='16' fill='%23fff' text-anchor='middle' font-weight='bold'%3EVulnerability Remediation Workflow%3C/text%3E%3Crect x='70' y='310' width='280' height='210' fill='%23111827' stroke='%23f59e0b' stroke-width='1' rx='4'/%3E%3Ctext x='210' y='335' font-size='12' fill='%23f59e0b' text-anchor='middle' font-weight='bold'%3E1. Vulnerability Scan%3C/text%3E%3Ctext x='210' y='360' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Detect CWE codes%3C/text%3E%3Ctext x='210' y='380' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Rate severity%3C/text%3E%3Ctext x='210' y='400' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Export SARIF report%3C/text%3E%3Ctext x='210' y='420' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Pinpoint code line%3C/text%3E%3Crect x='395' y='310' width='280' height='210' fill='%23111827' stroke='%238957e5' stroke-width='1' rx='4'/%3E%3Ctext x='535' y='335' font-size='12' fill='%238957e5' text-anchor='middle' font-weight='bold'%3E2. Fix Generation%3C/text%3E%3Ctext x='535' y='360' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Analyze AST%3C/text%3E%3Ctext x='535' y='380' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Build secure patch%3C/text%3E%3Ctext x='535' y='400' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Maintain semantics%3C/text%3E%3Ctext x='535' y='420' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Validate logic%3C/text%3E%3Crect x='720' y='310' width='250' height='210' fill='%23111827' stroke='%2306b6d4' stroke-width='1' rx='4'/%3E%3Ctext x='845' y='335' font-size='12' fill='%2306b6d4' text-anchor='middle' font-weight='bold'%3E3. Test %26 Review%3C/text%3E%3Ctext x='845' y='360' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Write unit tests%3C/text%3E%3Ctext x='845' y='380' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Regression check%3C/text%3E%3Ctext x='845' y='400' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• Generate PR%3C/text%3E%3Ctext x='845' y='420' font-size='10' fill='%23d1d5db' text-anchor='middle'%3E• 0 vulnerabilities%3C/text%3E%3Cdefs%3E%3CmarkerEnd id='arrowhead' markerWidth='10' markerHeight='10' refX='9' refY='3' orient='auto'%3E%3Cpolygon points='0 0, 10 3, 0 6' fill='%23fff'/%3E%3C/marker%3E%3C/defs%3E%3C/svg%3E",
+        "attachment": null
+      },
+      "versions": [
+        {
+          "version": "1.8.2",
+          "releaseDate": "2026-08-13",
+          "status": "CURRENT_STABLE",
+          "author": "David Chen",
+          "changelog": "Added support for React 19 Server Actions CSRF protection and upgraded SARIF 2.1.0 parser.",
+          "instructionsDiff": "+ Added CSRF token validation rules for Next.js App Router"
+        },
+        {
+          "version": "1.7.0",
+          "releaseDate": "2026-06-20",
+          "status": "ARCHIVED",
+          "author": "David Chen",
+          "changelog": "Initial CodeQL SARIF auto-remediation engine.",
+          "instructionsDiff": "+ Baseline security instructions"
+        }
+      ],
+      "security": {
+        "scanStatus": "PASSED",
+        "vulnerabilitiesDetected": 0,
+        "promptInjectionScore": "100% Resistant",
+        "piiMasking": "ENABLED (Strict)",
+        "lastAudited": "2026-08-13"
+      },
+      "metrics": {
+        "monthlyExecutions": 12400,
+        "avgResponseTime": "0.9s",
+        "developerSatisfaction": 99,
+        "hoursSavedPerMonth": 620
+      }
+    },
+    {
+      "id": "agent-fullstack-react19",
+      "name": "Copilot Fullstack React 19 & Next.js Architect",
+      "slug": "copilot-react19-architect",
+      "tagline": "Modernize legacy components, implement Server Components, Suspense & TanStack Query in VS Code.",
+      "category": "Frontend & Fullstack",
+      "icon": "layout",
+      "color": "#10b981",
+      "author": {
+        "name": "Sarah Lin",
+        "role": "Staff Frontend Architect",
+        "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
+        "team": "Design Systems & Core UI"
+      },
+      "version": "3.1.0",
+      "copilotModel": "Claude 3.5 Sonnet (GitHub Copilot)",
+      "copilotChatHandle": "@react-architect",
+      "rating": 4.92,
+      "downloads": 3410,
+      "activeDeployments": 890,
+      "certificationStatus": "CERTIFIED",
+      "lastUpdated": "2026-08-11T09:00:00Z",
+      "tags": [
+        "React 19",
+        "Next.js",
+        "TypeScript",
+        "TailwindCSS",
+        "Server Actions",
+        "Copilot"
+      ],
+      "description": "Refactors legacy React applications to React 19 standards, converts messy client state to React Server Components (RSC), integrates TanStack Query v5, and enforces enterprise accessibility (WCAG 2.2 AAA).",
+      "copilotConfig": {
+        "instructionsSnippet": "# GitHub Copilot React 19 & Next.js Architect\nYou are a Staff Frontend Engineer and React 19 Architect.\nWhen crafting or refactoring frontend code:\n1. Prefer React Server Components for data fetching. Use 'use client' only when state/effects are required.\n2. Implement React 19 Server Actions and `useActionState` for form submissions.\n3. Ensure strict TypeScript types and complete accessibility tags (aria-*, keyboard navigation).\n4. Use Tailwind CSS with enterprise design tokens.",
+        "promptFilePath": ".github/prompts/react-architect.prompt.md",
+        "vscodeSettingsJson": "{\n  \"github.copilot.chat.agent.reactArchitect\": {\n    \"enabled\": true,\n    \"model\": \"claude-3.5-sonnet\",\n    \"framework\": \"nextjs-app-router\",\n    \"strictAccessibility\": true\n  }\n}"
+      },
+      "artifacts": {
+        "demoVideo": {
+          "title": "Modernizing a 400-Line React Class Component into React 19 Server Action",
+          "duration": "1m 30s",
+          "resolution": "1080p 60fps",
+          "simulatedTimeline": [
+            {
+              "time": "0:00",
+              "title": "Open legacy UserProfileSettings.jsx",
+              "detail": "Legacy class component with nested setState and multiple useEffect waterfalls"
+            },
+            {
+              "time": "0:20",
+              "title": "Run Copilot Chat: @react-architect modernize",
+              "detail": "Agent breaks file into Server Component + lightweight Client Form"
+            },
+            {
+              "time": "0:45",
+              "title": "Add Optimistic UI updates with useOptimistic",
+              "detail": "Instant button response without loading flicker"
+            },
+            {
+              "time": "1:10",
+              "title": "Generate Vitest Unit Tests & Accessibility Check",
+              "detail": "Validates full keyboard tabbing and screen reader voice labels"
+            }
+          ]
+        },
+        "inputDocuments": [
+          {
+            "id": "doc-fe-in-1",
+            "title": "Legacy Monolithic React Class Component",
+            "filename": "LegacyUserProfile.jsx",
+            "fileType": "JSX",
+            "size": "11.5 KB",
+            "description": "Outdated React 16 class component with complex lifecycles and manual fetch handling.",
+            "content": "class UserProfile extends React.Component {\n  state = { user: null, loading: true, error: null };\n  componentDidMount() {\n    fetch('/api/user/' + this.props.userId)\n      .then(res => res.json())\n      .then(data => this.setState({ user: data, loading: false }));\n  }\n  // ... 300 more lines of manual state handling\n}"
+          }
+        ],
+        "outputDocuments": [
+          {
+            "id": "doc-fe-out-1",
+            "title": "Refactored React 19 Server Component & Action",
+            "filename": "UserProfilePage.tsx",
+            "fileType": "TSX",
+            "size": "4.2 KB",
+            "description": "Zero-waterfall Server Component with direct async DB access and optimistic mutation action.",
+            "content": "// React 19 Server Component\nimport { Suspense } from 'react';\nimport { UserFormClient } from './UserFormClient';\nimport { getUserData } from '@/lib/db/user';\n\nexport default async function UserProfilePage({ params }: { params: { userId: string } }) {\n  const user = await getUserData(params.userId);\n  return (\n    <main className=\"p-8 max-w-4xl mx-auto\">\n      <h1 className=\"text-2xl font-bold\">Account Settings</h1>\n      <Suspense fallback={<UserSkeleton />}>\n        <UserFormClient initialData={user} />\n      </Suspense>\n    </main>\n  );\n}"
+          }
+        ],
+        "knowledgeBase": [
+          {
+            "id": "kb-fe-1",
+            "title": "Corporate Frontend UI/UX Design System Guide v4.0",
+            "category": "Frontend Standards",
+            "author": "Core UI Guild",
+            "lastUpdated": "2026-08-01",
+            "tokenCount": 3900,
+            "description": "Design tokens, layout guidelines, button states, and color contrast rules.",
+            "content": "# Corporate Frontend Standards\n- Primary brand color: Purple (#8957E5) and Cyber Cyan (#00D4FF).\n- All interactive controls MUST support Focus-Visible outlines (`focus-visible:ring-2`).\n- Bundle budgets: Max 40kb first-load JS per route."
+          }
+        ]
+      },
+      "architectureDiagram": {
+        "title": "React 19 & Next.js Server Component Architecture",
+        "caption": "Modern fullstack React architecture with Server Components, Actions, and Suspense boundaries",
+        "dataUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 600'%3E%3Crect width='1000' height='600' fill='%23111827'/%3E%3Ctext x='500' y='50' font-size='24' fill='%23fff' font-weight='bold' text-anchor='middle'%3EReact 19 %26 Next.js Architecture%3C/text%3E%3Ctext x='500' y='85' font-size='12' fill='%23d1d5db' text-anchor='middle'%3EServer Components %26 Zero-Waterfall Data Fetching%3C/text%3E%3Crect x='50' y='120' width='180' height='120' fill='%2310b981' stroke='%2334d399' stroke-width='2' rx='8'/%3E%3Ctext x='140' y='150' font-size='13' fill='%23fff' text-anchor='middle' font-weight='bold'%3EBrowser%3C/text%3E%3Ctext x='140' y='175' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EClient Component%3C/text%3E%3Ctext x='140' y='195' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EInteractivity%3C/text%3E%3Ctext x='140' y='215' font-size='9' fill='%23a7f3d0' text-anchor='middle'%3EuseOptimistic%3C/text%3E%3Crect x='290' y='120' width='180' height='120' fill='%238957e5' stroke='%23a78bfa' stroke-width='2' rx='8'/%3E%3Ctext x='380' y='150' font-size='13' fill='%23fff' text-anchor='middle' font-weight='bold'%3EServer (RSC)%3C/text%3E%3Ctext x='380' y='175' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EServer Component%3C/text%3E%3Ctext x='380' y='195' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EDirect DB Query%3C/text%3E%3Ctext x='380' y='215' font-size='9' fill='%23ddd6fe' text-anchor='middle'%3ESuspense%3C/text%3E%3Crect x='530' y='120' width='180' height='120' fill='%2306b6d4' stroke='%2322d3ee' stroke-width='2' rx='8'/%3E%3Ctext x='620' y='150' font-size='13' fill='%23fff' text-anchor='middle' font-weight='bold'%3EDatabase%3C/text%3E%3Ctext x='620' y='175' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EPostgreSQL%3C/text%3E%3Ctext x='620' y='195' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EPrisma ORM%3C/text%3E%3Ctext x='620' y='215' font-size='9' fill='%23cffafe' text-anchor='middle'%3ECached%3C/text%3E%3Crect x='770' y='120' width='180' height='120' fill='%23f59e0b' stroke='%23fbbf24' stroke-width='2' rx='8'/%3E%3Ctext x='860' y='150' font-size='13' fill='%23fff' text-anchor='middle' font-weight='bold'%3EServer Actions%3C/text%3E%3Ctext x='860' y='175' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EForm Mutations%3C/text%3E%3Ctext x='860' y='195' font-size='10' fill='%23d1d5db' text-anchor='middle'%3ERPC Endpoints%3C/text%3E%3Ctext x='860' y='215' font-size='9' fill='%23fed7aa' text-anchor='middle'%3E'use server'%3C/text%3E%3Cline x1='230' y1='180' x2='290' y2='180' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='470' y1='180' x2='530' y2='180' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='620' y1='240' x2='620' y2='290' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='380' y1='240' x2='380' y2='290' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='860' y1='240' x2='860' y2='290' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Crect x='50' y='310' width='900' height='250' fill='%231f2937' stroke='%234b5563' stroke-width='2' rx='8'/%3E%3Ctext x='500' y='340' font-size='14' fill='%23fff' text-anchor='middle' font-weight='bold'%3EData Flow %26 Rendering Lifecycle%3C/text%3E%3Crect x='70' y='365' width='280' height='180' fill='%23111827' stroke='%2310b981' stroke-width='1' rx='4'/%3E%3Ctext x='210' y='390' font-size='11' fill='%2310b981' text-anchor='middle' font-weight='bold'%3E1. Build Phase%3C/text%3E%3Ctext x='210' y='410' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Execute Server Comp%3C/text%3E%3Ctext x='210' y='425' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Query from DB%3C/text%3E%3Ctext x='210' y='440' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Serialize to JSON%3C/text%3E%3Ctext x='210' y='455' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Create RSC payload%3C/text%3E%3Crect x='395' y='365' width='280' height='180' fill='%23111827' stroke='%238957e5' stroke-width='1' rx='4'/%3E%3Ctext x='535' y='390' font-size='11' fill='%238957e5' text-anchor='middle' font-weight='bold'%3E2. Transport%3C/text%3E%3Ctext x='535' y='410' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Send RSC stream%3C/text%3E%3Ctext x='535' y='425' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• No JS overhead%3C/text%3E%3Ctext x='535' y='440' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Streaming response%3C/text%3E%3Ctext x='535' y='455' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Client hydration%3C/text%3E%3Crect x='720' y='365' width='250' height='180' fill='%23111827' stroke='%2306b6d4' stroke-width='1' rx='4'/%3E%3Ctext x='845' y='390' font-size='11' fill='%2306b6d4' text-anchor='middle' font-weight='bold'%3E3. Browser Render%3C/text%3E%3Ctext x='845' y='410' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Reconcile tree%3C/text%3E%3Ctext x='845' y='425' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Client interactivity%3C/text%3E%3Ctext x='845' y='440' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• useOptimistic UI%3C/text%3E%3Ctext x='845' y='455' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Zero waterfall%3C/text%3E%3Cdefs%3E%3CmarkerEnd id='arrowhead' markerWidth='10' markerHeight='10' refX='9' refY='3' orient='auto'%3E%3Cpolygon points='0 0, 10 3, 0 6' fill='%23fff'/%3E%3C/marker%3E%3C/defs%3E%3C/svg%3E",
+        "attachment": null
+      },
+      "versions": [
+        {
+          "version": "3.1.0",
+          "releaseDate": "2026-08-11",
+          "status": "CURRENT_STABLE",
+          "author": "Sarah Lin",
+          "changelog": "Full support for React 19 stable APIs, useActionState, useOptimistic, and Turbopack.",
+          "instructionsDiff": "+ Added React 19 Server Actions and optimistic hooks guidelines"
+        }
+      ],
+      "security": {
+        "scanStatus": "PASSED",
+        "vulnerabilitiesDetected": 0,
+        "promptInjectionScore": "99.5% Resistant",
+        "piiMasking": "ENABLED",
+        "lastAudited": "2026-08-11"
+      },
+      "metrics": {
+        "monthlyExecutions": 16800,
+        "avgResponseTime": "0.8s",
+        "developerSatisfaction": 97,
+        "hoursSavedPerMonth": 780
+      }
+    },
+    {
+      "id": "agent-db-sql-optimizer",
+      "name": "Copilot Enterprise SQL & PostgreSQL Optimizer",
+      "slug": "copilot-sql-optimizer",
+      "tagline": "EXPLAIN ANALYZE tuning, missing index recommendations & zero-downtime migration scripts.",
+      "category": "Database & Data",
+      "icon": "database",
+      "color": "#f59e0b",
+      "author": {
+        "name": "Alexandre Dubois",
+        "role": "Lead Database Infrastructure Engineer",
+        "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+        "team": "Data Platform & Storage"
+      },
+      "version": "2.0.2",
+      "copilotModel": "GPT-4o (GitHub Copilot)",
+      "copilotChatHandle": "@sql-optimizer",
+      "rating": 4.96,
+      "downloads": 1890,
+      "activeDeployments": 420,
+      "certificationStatus": "CERTIFIED",
+      "lastUpdated": "2026-08-10T11:00:00Z",
+      "tags": [
+        "PostgreSQL",
+        "SQL",
+        "Database Tuning",
+        "Indexing",
+        "Migrations",
+        "Prisma",
+        "Copilot"
+      ],
+      "description": "Analyzes slow query execution plans, identifies sequential disk scans, drafts zero-downtime concurrent indexing scripts, and optimizes high-throughput multi-tenant queries in VS Code Copilot.",
+      "copilotConfig": {
+        "instructionsSnippet": "# GitHub Copilot SQL & Database Optimizer\nYou are an Enterprise PostgreSQL Database Architect and Performance Engineer.\nWhen reviewing SQL queries or execution plans:\n1. Identify expensive Sequential Scans, Sort Spills to Disk, and Cartesian Joins.\n2. Formulate optimized Common Table Expressions (CTEs), Subquery eliminations, and composite indexes.\n3. Always supply safe concurrent migration DDL (`CREATE INDEX CONCURRENTLY`).\n4. Include latency before/after estimations.",
+        "promptFilePath": ".github/prompts/sql-optimizer.prompt.md",
+        "vscodeSettingsJson": "{\n  \"github.copilot.chat.agent.sqlOptimizer\": {\n    \"enabled\": true,\n    \"model\": \"gpt-4o\",\n    \"targetEngine\": \"postgresql-16\",\n    \"safeMigrationsOnly\": true\n  }\n}"
+      },
+      "artifacts": {
+        "demoVideo": {
+          "title": "Optimizing a 14-Second Unindexed Query down to 22ms in VS Code Copilot",
+          "duration": "1m 55s",
+          "resolution": "1080p 60fps",
+          "simulatedTimeline": [
+            {
+              "time": "0:00",
+              "title": "Paste EXPLAIN (ANALYZE, BUFFERS) into Copilot Chat",
+              "detail": "Planner cost shows 1,842,000 with 14.2s runtime scanning 2.4M rows"
+            },
+            {
+              "time": "0:35",
+              "title": "Agent identifies unindexed multi-tenant filter",
+              "detail": "Proposes partial covering index on (tenant_id, created_at DESC) WHERE status = active"
+            },
+            {
+              "time": "1:10",
+              "title": "Agent generates Zero-Downtime Migration SQL",
+              "detail": "Uses CREATE INDEX CONCURRENTLY to avoid locking production writes"
+            },
+            {
+              "time": "1:45",
+              "title": "Re-test Query Plan",
+              "detail": "Execution time drops to 21.8ms (99.8% latency reduction)"
+            }
+          ]
+        },
+        "inputDocuments": [
+          {
+            "id": "doc-db-in-1",
+            "title": "PostgreSQL EXPLAIN ANALYZE Execution Output",
+            "filename": "slow-query-plan.json",
+            "fileType": "JSON",
+            "size": "9.1 KB",
+            "description": "Raw query planner output showing high buffer reads and unindexed sequential scan.",
+            "content": "[\n  {\n    \"Plan\": {\n      \"Node Type\": \"Seq Scan\",\n      \"Relation Name\": \"orders\",\n      \"Actual Startup Time\": 0.051,\n      \"Actual Total Time\": 14210.42,\n      \"Actual Rows\": 2480100,\n      \"Filter\": \"((status = 'PENDING'::text) AND (tenant_id = 't_enterprise_44'::text))\",\n      \"Rows Removed by Filter\": 9840220\n    }\n  }\n]"
+          }
+        ],
+        "outputDocuments": [
+          {
+            "id": "doc-db-out-1",
+            "title": "Concurrent Index Migration & Optimized SQL",
+            "filename": "migration-idx-orders-tenant.sql",
+            "fileType": "SQL",
+            "size": "3.6 KB",
+            "description": "Production-safe non-blocking migration script with index verification.",
+            "content": "-- 1. Zero-downtime non-blocking partial index\nCREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_tenant_status_created \nON orders (tenant_id, created_at DESC) \nINCLUDE (total_amount, customer_id)\nWHERE status = 'PENDING';\n\n-- 2. Optimized Query utilizing Index-Only Scan\nSELECT total_amount, customer_id, created_at\nFROM orders\nWHERE tenant_id = :tenant_id\n  AND status = 'PENDING'\nORDER BY created_at DESC\nLIMIT 50;"
+          }
+        ],
+        "knowledgeBase": [
+          {
+            "id": "kb-db-1",
+            "title": "Enterprise Database Migration & Zero-Downtime Playbook",
+            "category": "Data Engineering",
+            "author": "Database Guild",
+            "lastUpdated": "2026-07-20",
+            "tokenCount": 4600,
+            "description": "Rules for schema changes, table locks, replication lag management, and connection pool sizing.",
+            "content": "# Zero-Downtime Migration Mandates\n1. NEVER run raw `CREATE INDEX` on tables > 100k rows during business hours; always use `CONCURRENTLY`.\n2. Adding non-null columns without defaults locks tables; use two-phase rollout with nullable column first."
+          }
+        ]
+      },
+      "architectureDiagram": {
+        "title": "PostgreSQL Query Optimization & Index Strategy",
+        "caption": "Zero-downtime indexing workflow with execution plan analysis and migration verification",
+        "dataUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 600'%3E%3Crect width='1000' height='600' fill='%23111827'/%3E%3Ctext x='500' y='50' font-size='24' fill='%23fff' font-weight='bold' text-anchor='middle'%3EPostgreSQL Query Optimization Pipeline%3C/text%3E%3Ctext x='500' y='85' font-size='12' fill='%23d1d5db' text-anchor='middle'%3EExecution Plan Analysis to Index Migration%3C/text%3E%3Crect x='50' y='120' width='170' height='100' fill='%23f59e0b' stroke='%23fbbf24' stroke-width='2' rx='8'/%3E%3Ctext x='135' y='150' font-size='12' fill='%23fff' text-anchor='middle' font-weight='bold'%3EQuery Analysis%3C/text%3E%3Ctext x='135' y='170' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EEXPLAIN%3C/text%3E%3Ctext x='135' y='185' font-size='10' fill='%23d1d5db' text-anchor='middle'%3EANALYZE%3C/text%3E%3Crect x='280' y='120' width='170' height='100' fill='%2310b981' stroke='%2334d399' stroke-width='2' rx='8'/%3E%3Ctext x='365' y='150' font-size='12' fill='%23fff' text-anchor='middle' font-weight='bold'%3EPlan Detection%3C/text%3E%3Ctext x='365' y='170' font-size='9' fill='%23d1d5db' text-anchor='middle'%3ESeq Scan Issues%3C/text%3E%3Ctext x='365' y='185' font-size='9' fill='%23d1d5db' text-anchor='middle'%3EFilter Loss%3C/text%3E%3Crect x='510' y='120' width='170' height='100' fill='%238957e5' stroke='%23a78bfa' stroke-width='2' rx='8'/%3E%3Ctext x='595' y='150' font-size='12' fill='%23fff' text-anchor='middle' font-weight='bold'%3EIndex Design%3C/text%3E%3Ctext x='595' y='170' font-size='9' fill='%23d1d5db' text-anchor='middle'%3EComposite Keys%3C/text%3E%3Ctext x='595' y='185' font-size='9' fill='%23d1d5db' text-anchor='middle'%3EINCLUDE Cols%3C/text%3E%3Crect x='740' y='120' width='170' height='100' fill='%2306b6d4' stroke='%2322d3ee' stroke-width='2' rx='8'/%3E%3Ctext x='825' y='150' font-size='12' fill='%23fff' text-anchor='middle' font-weight='bold'%3EMigration%3C/text%3E%3Ctext x='825' y='170' font-size='9' fill='%23d1d5db' text-anchor='middle'%3ECONCURRENTLY%3C/text%3E%3Ctext x='825' y='185' font-size='9' fill='%23d1d5db' text-anchor='middle'%3EZero Downtime%3C/text%3E%3Cline x1='220' y1='170' x2='280' y2='170' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='450' y1='170' x2='510' y2='170' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Cline x1='680' y1='170' x2='740' y2='170' stroke='%23fff' stroke-width='2' marker-end='url(%23arrowhead)'/%3E%3Crect x='50' y='280' width='900' height='280' fill='%231f2937' stroke='%234b5563' stroke-width='2' rx='8'/%3E%3Ctext x='500' y='310' font-size='14' fill='%23fff' text-anchor='middle' font-weight='bold'%3EOptimization Details %26 Verification%3C/text%3E%3Crect x='70' y='335' width='280' height='210' fill='%23111827' stroke='%23f59e0b' stroke-width='1' rx='4'/%3E%3Ctext x='210' y='360' font-size='11' fill='%23f59e0b' text-anchor='middle' font-weight='bold'%3E1. Bottleneck Analysis%3C/text%3E%3Ctext x='210' y='380' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Identify Seq Scans%3C/text%3E%3Ctext x='210' y='395' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Buffer pool waste%3C/text%3E%3Ctext x='210' y='410' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• I/O cost estimate%3C/text%3E%3Ctext x='210' y='425' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Planner cost%3C/text%3E%3Ctext x='210' y='440' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Filter selectivity%3C/text%3E%3Crect x='395' y='335' width='280' height='210' fill='%23111827' stroke='%2310b981' stroke-width='1' rx='4'/%3E%3Ctext x='535' y='360' font-size='11' fill='%2310b981' text-anchor='middle' font-weight='bold'%3E2. Index Strategy%3C/text%3E%3Ctext x='535' y='380' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Composite keys%3C/text%3E%3Ctext x='535' y='395' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• (col1, col2 DESC)%3C/text%3E%3Ctext x='535' y='410' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• INCLUDE cols%3C/text%3E%3Ctext x='535' y='425' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Partial WHERE%3C/test%3E%3Ctext x='535' y='440' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Index only scan%3C/test%3E%3Crect x='720' y='335' width='250' height='210' fill='%23111827' stroke='%2306b6d4' stroke-width='1' rx='4'/%3E%3Ctext x='845' y='360' font-size='11' fill='%2306b6d4' text-anchor='middle' font-weight='bold'%3E3. Deployment%3C/text%3E%3Ctext x='845' y='380' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• CREATE INDEX%3C/test%3E%3Ctext x='845' y='395' font-size='9' fill='%23d1d5db' text-anchor='middle'%3ECONCURRENTLY%3C/test%3E%3Ctext x='845' y='410' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• No lock wait%3C/test%3E%3Ctext x='845' y='425' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Re-run ANALYZE%3C/test%3E%3Ctext x='845' y='440' font-size='9' fill='%23d1d5db' text-anchor='middle'%3E• Query faster%3C/test%3E%3Cdefs%3E%3CmarkerEnd id='arrowhead' markerWidth='10' markerHeight='10' refX='9' refY='3' orient='auto'%3E%3Cpolygon points='0 0, 10 3, 0 6' fill='%23fff'/%3E%3C/marker%3E%3C/defs%3E%3C/svg%3E",
+        "attachment": null
+      },
+      "versions": [
+        {
+          "version": "2.0.2",
+          "releaseDate": "2026-08-10",
+          "status": "CURRENT_STABLE",
+          "author": "Alexandre Dubois",
+          "changelog": "Added PostgreSQL 16 planner optimizations and Prisma schema auto-index hints.",
+          "instructionsDiff": "+ Added index covering syntax guidelines for PostgreSQL 16"
+        }
+      ],
+      "security": {
+        "scanStatus": "PASSED",
+        "vulnerabilitiesDetected": 0,
+        "promptInjectionScore": "100% Resistant",
+        "piiMasking": "ENABLED",
+        "lastAudited": "2026-08-10"
+      },
+      "metrics": {
+        "monthlyExecutions": 7200,
+        "avgResponseTime": "1.1s",
+        "developerSatisfaction": 99,
+        "hoursSavedPerMonth": 390
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "id": "prompt-arch-review",
+      "title": "Enterprise Architecture & Clean Code Review",
+      "copilotCommand": "/architecture-review",
+      "category": "System Architecture",
+      "version": "1.3.0",
+      "rating": 4.96,
+      "usageCount": 4890,
+      "author": "Principal Architecture Guild",
+      "description": "Deep architectural inspection reviewing SOLID principles, domain boundaries, error handling, and performance bottlenecks.",
+      "variables": [
+        {
+          "name": "framework",
+          "default": "TypeScript / Node.js / React 19",
+          "description": "Tech stack of the file"
+        },
+        {
+          "name": "architecture_pattern",
+          "default": "Clean Architecture / DDD",
+          "description": "Target architectural model"
+        },
+        {
+          "name": "max_cyclomatic_complexity",
+          "default": "10",
+          "description": "Target complexity limit"
+        }
+      ],
+      "template": "Review the selected code following enterprise {{architecture_pattern}} standards for {{framework}}.\nAnalyze the following vectors:\n1. Separation of Concerns & Domain Invariants\n2. Cyclomatic complexity (flag any function > {{max_cyclomatic_complexity}})\n3. Proper error handling without silent catch blocks\n4. Memory leakage risks and connection lifecycle safety\nProvide clear suggestions with before/after refactoring diffs."
+    },
+    {
+      "id": "prompt-unit-test-fuzzing",
+      "title": "Automated Unit Test Suite with Boundary Fuzzing",
+      "copilotCommand": "/generate-tests",
+      "category": "QA & Testing",
+      "version": "2.1.0",
+      "rating": 4.98,
+      "usageCount": 7120,
+      "author": "Enterprise QA Engineering",
+      "description": "Generates comprehensive unit and integration tests covering happy paths, edge cases, nullability, and boundary fuzzing.",
+      "variables": [
+        {
+          "name": "test_runner",
+          "default": "Vitest / Jest",
+          "description": "Test framework in project"
+        },
+        {
+          "name": "coverage_target",
+          "default": "100%",
+          "description": "Required branch coverage"
+        }
+      ],
+      "template": "Generate a production-grade {{test_runner}} test suite for the current code to achieve {{coverage_target}} branch coverage.\nRequirements:\n- Structure tests using Arrange-Act-Assert (AAA) pattern with descriptive 'describe' and 'it' blocks.\n- Test normal happy paths with realistic enterprise mock fixtures.\n- Test boundary conditions: null, undefined, empty strings, max integer values, unicode characters.\n- Test simulated network failures, timeouts, and throw cases.\n- Use strict type assertions without 'any'."
+    },
+    {
+      "id": "prompt-security-sanitize",
+      "title": "Secrets & SAST Vulnerability Sanitizer",
+      "copilotCommand": "/security-audit",
+      "category": "Security & Compliance",
+      "version": "1.5.0",
+      "rating": 4.99,
+      "usageCount": 9400,
+      "author": "Cyber Defense Team",
+      "description": "Scans the active editor buffer for hardcoded credentials, unescaped output, weak crypto, or tainted injection flows.",
+      "variables": [
+        {
+          "name": "security_standard",
+          "default": "OWASP Top 10 & SOC2",
+          "description": "Compliance benchmark"
+        },
+        {
+          "name": "secrets_policy",
+          "default": "Enterprise Azure KeyVault / AWS Secrets Manager",
+          "description": "Approved secret store"
+        }
+      ],
+      "template": "Perform an exhaustive {{security_standard}} compliance audit on the open file.\n1. Check for any hardcoded tokens, API keys, private keys, or passwords. Replace with {{secrets_policy}} configuration loaders.\n2. Check for SQL Injection, NoSQL injection, or Command Injection vulnerabilities.\n3. Check for insecure deserialization or RegExp Denial of Service (ReDoS).\n4. Return a bulleted risk summary and a drop-in secure code patch."
+    },
+    {
+      "id": "prompt-sql-explain",
+      "title": "High-Volume SQL Query & Index Optimizer",
+      "copilotCommand": "/optimize-sql",
+      "category": "Database & Data",
+      "version": "1.2.0",
+      "rating": 4.91,
+      "usageCount": 3100,
+      "author": "Data Infrastructure Team",
+      "description": "Restructures slow SQL queries, eliminates correlated subqueries, and generates concurrent composite indexes.",
+      "variables": [
+        {
+          "name": "db_engine",
+          "default": "PostgreSQL 16",
+          "description": "Target database engine"
+        },
+        {
+          "name": "table_volume",
+          "default": "10 Million Rows",
+          "description": "Estimated row scale"
+        }
+      ],
+      "template": "Optimize this SQL query for {{db_engine}} running on tables with {{table_volume}}.\n1. Identify and eliminate any full table sequential scans.\n2. Refactor correlated subqueries into JOINs or CTEs.\n3. Generate `CREATE INDEX CONCURRENTLY` statements with proper partial filters or INCLUDE clauses.\n4. Estimate reduction in disk I/O and execution time."
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "log-1786880073261-kvkz",
+      "timestamp": "2026-08-16T11:34:33.261Z",
+      "actor": {
+        "name": "Enterprise Developer",
+        "role": "developer",
+        "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"
+      },
+      "actionType": "VSCODE_DOWNLOADED",
+      "agentId": "agent-db-sql-optimizer",
+      "agentName": "Copilot Enterprise SQL & PostgreSQL Optimizer",
+      "details": "Downloaded complete agent bundle (.zip) with 1 KB docs and VS Code Copilot setup.",
+      "metadata": {
+        "version": "2.0.2",
+        "packageSize": "Zip Bundle",
+        "ip": "10.142.86.86"
+      }
+    },
+    {
+      "id": "log-104",
+      "timestamp": "2026-08-16T07:28:06.827Z",
+      "actor": {
+        "name": "Alexandre Dubois",
+        "role": "developer",
+        "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100"
+      },
+      "actionType": "PROMPT_FORKED",
+      "agentId": "prompt-unit-test-fuzzing",
+      "agentName": "Automated Unit Test Suite with Boundary Fuzzing",
+      "details": "Copied Copilot prompt template into local project .github/prompts/test-suite.prompt.md",
+      "metadata": {
+        "templateVersion": "2.1.0"
+      }
+    },
+    {
+      "id": "log-103",
+      "timestamp": "2026-08-16T08:53:06.827Z",
+      "actor": {
+        "name": "David Chen, CISSP",
+        "role": "security_governance",
+        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100"
+      },
+      "actionType": "AGENT_CERTIFIED",
+      "agentId": "agent-secops-cve",
+      "agentName": "Copilot SecOps Zero-Day & SAST Remediator",
+      "details": "Security and Prompt-Injection audit certified (100% resistant score). Approved for Enterprise store.",
+      "metadata": {
+        "complianceScore": "99.9%",
+        "approver": "Enterprise SecOps Council"
+      }
+    },
+    {
+      "id": "log-102",
+      "timestamp": "2026-08-16T09:43:06.827Z",
+      "actor": {
+        "name": "Elena Rostova",
+        "role": "ai_engineer",
+        "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"
+      },
+      "actionType": "VERSION_BUMPED",
+      "agentId": "agent-sre-k8s",
+      "agentName": "GitHub Copilot SRE & Kubernetes Triager",
+      "details": "Released version v2.4.0 with updated Prometheus v2.5 webhook parser and JVM autotuning.",
+      "metadata": {
+        "previousVersion": "2.3.1",
+        "newVersion": "2.4.0",
+        "tag": "latest"
+      }
+    },
+    {
+      "id": "log-101",
+      "timestamp": "2026-08-16T10:16:06.827Z",
+      "actor": {
+        "name": "Sarah Lin",
+        "role": "developer",
+        "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100"
+      },
+      "actionType": "VSCODE_DOWNLOADED",
+      "agentId": "agent-sre-k8s",
+      "agentName": "GitHub Copilot SRE & Kubernetes Triager",
+      "details": "Downloaded VS Code Copilot agent package bundle (.zip) with prompt rules and KB docs.",
+      "metadata": {
+        "version": "2.4.0",
+        "targetIDE": "VS Code",
+        "ip": "10.142.8.44"
+      }
+    }
+  ]
+}
